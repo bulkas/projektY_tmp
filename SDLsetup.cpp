@@ -3,6 +3,67 @@
 #include<SDL_image.h>
 #include<iostream>
 
+// wpółrzędne punktu
+typedef struct MyPoint
+{
+	int x, y;
+	
+} MyPoint;
+
+MyPoint checkBoxColision(int x1, int x2, int y1, int y2, int x, int y, SDL_Rect previousPlayerPosition) {
+	bool left = (x > x1) && (y > y1) && (y < y2);
+	bool right = (x < x2) && (y > y1) && (y < y2);
+	bool up = (y > y1) && (x > x1) && (x < x2);
+	bool down = (y < y2) && (x > x1) && (x < x2);
+
+	// jeśli dotkniesz blackBoxa wracasz do poczatku
+	//if (left && right && up && down) {
+	//	isOnLeft
+	//	y = 10;
+	//}
+
+
+	// jeśli dotkniesz blackBoxa stajesz w miejscu
+	// (nie możesz przekroczyć linii blackBoxa)
+
+	// sprawdzamy, gdzie player był poprzednio:
+	// playerPosition.x - współrzędna x poprzedniej pozycji playera
+	// playerPosition.y - współrzędna y poprzedniej pozycji playera
+	bool wasOnLeft = (previousPlayerPosition.x <= x1) && (previousPlayerPosition.y > y1) && (previousPlayerPosition.y < y2);
+	bool wasOnRight = (previousPlayerPosition.x >= x2) && (previousPlayerPosition.y > y1) && (previousPlayerPosition.y < y2);
+	bool wasUp = (previousPlayerPosition.y <= y1) && (previousPlayerPosition.x > x1) && (previousPlayerPosition.x < x2);
+	bool wasDown = (previousPlayerPosition.y >= y2) && (previousPlayerPosition.x > x1) && (previousPlayerPosition.x < x2);
+
+	// sprawdzamy czy player dotknął blackBoxa:
+	// x - współrzędna x aktualnej pozycji playera
+	// y - współrzędna y aktualnej pozycji playera
+	if (left && right && up && down) {
+		// jeśli dotknął - w zależności od tego gdzie był, ustawiamy jego aktualne współrzędne
+		// jeśli był na lewo ustawiamy współrzędną x playera na x1
+		if (wasOnLeft) {
+			x = x1;
+		}
+		else if (wasOnRight) {
+			x = x2;
+		}
+		else if (wasUp) {
+			y = y1;
+		}
+		else if (wasDown) {
+			y = y2;
+		}
+
+	}
+
+	MyPoint positionAfterCheckColision;
+
+	positionAfterCheckColision.x = x;
+	positionAfterCheckColision.y = y;
+
+	return positionAfterCheckColision;
+
+}
+
 SDL_Texture * LoadTexture(std::string filePath, SDL_Renderer * renderTarget)
 {
 	SDL_Texture* texture = nullptr;
@@ -253,11 +314,15 @@ int main(int argc, char* argv[])
 				playerRect.x = 0;
 		}
 
+		
+
 		// wpółrzędne kwadratu (blackBoxa)
 		int x1 = 70;
 		int x2 = 195;
 		int y1 = 70;
 		int y2 = 200;
+		
+		/*
 		bool left = (x > x1) && (y > y1) && (y < y2);
 		bool right = (x < x2) && (y > y1) && (y < y2);
 		bool up = (y > y1) && (x > x1) && (x < x2);
@@ -301,10 +366,18 @@ int main(int argc, char* argv[])
 			}
 
 		}
+		*/
+
+		SDL_Rect previousPlayerPosition;
+		
+		previousPlayerPosition.x = playerPosition.x;
+		previousPlayerPosition.y = playerPosition.y;
+
+		MyPoint positionAfterCheckColision = checkBoxColision(x1, x2, y1, y2, x, y, previousPlayerPosition);
 
 		// update player's position
-		playerPosition.x = x;
-		playerPosition.y = y;
+		playerPosition.x = positionAfterCheckColision.x;
+		playerPosition.y = positionAfterCheckColision.y;
 
 		// Clear the current rendering target with the drawing color
 		//SDL_RenderClear(renderTarget);
